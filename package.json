@@ -1,0 +1,26 @@
+{
+  "name": "googledriveapi",
+  "version": "1.0.0",
+  "description": "API for save image in Google Drive",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "prod": "node index.js"
+  },
+  "keywords": [
+    "Google",
+    "Drive",
+    "API"
+  ],
+  "author": "Camilo R.",
+  "license": "ISC",
+  "dependencies": {
+    "base64-to-image": "^1.0.2",
+    "celebrate": "^10.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "googleapis": "^39.2.0",
+    "nodemon": "^1.19.3"
+  }
+}
