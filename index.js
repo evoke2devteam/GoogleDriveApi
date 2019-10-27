@@ -34,13 +34,13 @@ app.post('/save-image', celebrate({
         auth: authClient
     });
     const filesListResponse = drive.files.list({
-        q: "trashed=false",
-        pageSize: 10,
-        fields: 'nextPageToken, files(id, name)'
+        q: "mimeType='application/vnd.google-apps.folder'",
+        fields: 'files(id, name)'
     });
     filesListResponse.then(dataList => {
         let folderEvokeId;
         let folderMissionId;
+        // Busca en la raíz de la carpeta una carpeta que se Llama Evoke
         if (dataList.data.files.length > 0) {
             for (let i = 0; i < dataList.data.files.length; i++) {
                 const element = dataList.data.files[i];
@@ -48,7 +48,8 @@ app.post('/save-image', celebrate({
                     folderEvokeId = element.id;
                 }
             }
-            if(!folderEvokeId){
+            // Si no la encuentra la créa, crea la carptea de la misión y sube la evidencia.
+            if (!folderEvokeId) {
                 const cerateFolderEvokeResponse = drive.files.create({
                     requestBody: {
                         'name': 'Evoke',
@@ -69,8 +70,7 @@ app.post('/save-image', celebrate({
                         const driveResponse = drive.files.create({
                             requestBody: {
                                 name: req.body.name,
-                                mimeType: req.body.mimetype,
-                                parents: [folderMissionId]
+                                parents: ["1VatdZaOpKFUJ97Ujud3hbWolc86Gi1_3"]
                             },
                             media: {
                                 mimeType: req.body.mimeType,
@@ -95,44 +95,88 @@ app.post('/save-image', celebrate({
                 }).catch(errFolder => {
                     res.status(errFolder.code).send({ status: false, message: 'Fail to create a Evoke folder in drive', error: errFolder });
                 });
+
+
             } else {
-                const createMissionFolder = drive.files.create({
-                    requestBody: {
-                        'name': req.body.idMission,
-                        'mimeType': 'application/vnd.google-apps.folder',
-                        'parents': [folderEvokeId]
-                    }
+                // Si encuentra la carpeta revisa las carpetas de las misiones
+                const listFolderMission = drive.files.list({
+                    q: "'" + folderEvokeId + "' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",
+                    fields: 'files(id, name)'
                 });
-                createMissionFolder.then(dataMissionFolder => {
-                    folderMissionId = dataMissionFolder.data.id;
-                    const driveResponse = drive.files.create({
-                        requestBody: {
-                            name: req.body.name,
-                            mimeType: req.body.mimetype,
-                            parents: [folderMissionId]
-                        },
-                        media: {
-                            mimeType: req.body.mimeType,
-                            body: fs.createReadStream(path.join(__dirname, `./${req.body.name}.jpg`))
+                listFolderMission.then(dataFolderMissions => {
+                    for (let i = 0; i < dataFolderMissions.data.files.length; i++) {
+                        const element = dataFolderMissions.data.files[i];
+                        if (element.name == req.body.idMission) {
+                            folderMissionId = element.id
                         }
-                    });
-                    driveResponse.then(data => {
-                        if (data.status == 200) {
-                            res.status(200).send({ status: true, message: 'Image uploaded successfully' });
-                        } else {
-                            res.status(data.status).send({ status: false, message: 'Something failed' });
-                        }
-                        fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                            if (err) throw err;
+                    }
+                    // Si no existe la mision la crea
+                    if (!folderMissionId) {
+                        const createMissionFolder = drive.files.create({
+                            requestBody: {
+                                'name': req.body.idMission,
+                                'mimeType': 'application/vnd.google-apps.folder',
+                                'parents': [folderEvokeId]
+                            }
                         });
-                    }).catch(err => {
-                        res.status(err.code).send({ status: false, message: 'Fail to save the imagen', error: err.code });
-                    });
-                }).catch(errMissionFolder => {
-                    res.status(errMissionFolder.code).send({ status: false, message: 'Fail to create a mission folder in drive', error: errMissionFolder });
+                        createMissionFolder.then(dataMissionFolder => {
+                            folderMissionId = dataMissionFolder.data.id;
+                            const driveResponse = drive.files.create({
+                                requestBody: {
+                                    name: req.body.name,
+                                    parents: [folderMissionId]
+                                },
+                                media: {
+                                    mimeType: req.body.mimeType,
+                                    body: fs.createReadStream(path.join(__dirname, `./${req.body.name}.jpg`))
+                                }
+                            });
+                            driveResponse.then(data => {
+                                if (data.status == 200) {
+                                    res.status(200).send({ status: true, message: 'Image uploaded successfully' });
+                                } else {
+                                    res.status(data.status).send({ status: false, message: 'Something failed' });
+                                }
+                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                    if (err) throw err;
+                                });
+                            }).catch(err => {
+                                res.status(err.code).send({ status: false, message: 'Fail to save the imagen', error: err.code });
+                            });
+                        }).catch(errMissionFolder => {
+                            res.status(errMissionFolder.code).send({ status: false, message: 'Fail to create a mission folder in drive', error: errMissionFolder });
+                        });
+                    } else {
+                        // Si existe la carpeta de la mision guarda la evidencia
+                        const driveResponse = drive.files.create({
+                            requestBody: {
+                                name: req.body.name,
+                                parents: [folderMissionId]
+                            },
+                            media: {
+                                mimeType: req.body.mimeType,
+                                body: fs.createReadStream(path.join(__dirname, `./${req.body.name}.jpg`))
+                            }
+                        });
+                        driveResponse.then(data => {
+                            if (data.status == 200) {
+                                res.status(200).send({ status: true, message: 'Image uploaded successfully' });
+                            } else {
+                                res.status(data.status).send({ status: false, message: 'Something failed' });
+                            }
+                            fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                if (err) throw err;
+                            });
+                        }).catch(err => {
+                            res.status(err.code).send({ status: false, message: 'Fail to save the imagen', error: err.code });
+                        });
+                    }
+                }).catch(errFolderMiission => {
+                    res.status(errFolderMiission.code).send({ status: false, message: 'Fail to find a mission folder in drive', error: errFolderMiission });
                 });
             }
         } else {
+            // Si no se regresa un arreglo, se crea aquí
             const cerateFolderEvokeResponse = drive.files.create({
                 requestBody: {
                     'name': 'Evoke',
@@ -153,7 +197,6 @@ app.post('/save-image', celebrate({
                     const driveResponse = drive.files.create({
                         requestBody: {
                             name: req.body.name,
-                            mimeType: req.body.mimetype,
                             parents: [folderMissionId]
                         },
                         media: {
@@ -180,86 +223,8 @@ app.post('/save-image', celebrate({
                 res.status(errFolder.code).send({ status: false, message: 'Fail to create a Evoke folder in drive', error: errFolder });
             });
         }
-        /**
-        const ListFolderMission = drive.files.list({
-            q: "'" + folderEvokeId + "' in parents and trashed=false",
-            pageSize: 10,
-            fields: 'nextPageToken, files(id, name)',
-        });
-        ListFolderMission.then(dataListMission => {
-            if (dataListMission.data.files.length > 0) {
-                for (let i = 0; i < dataListMission.data.files.length; i++) {
-                    const element = dataListMission.data.files[i];
-                    if (element.name == req.body.idMission) {
-                        folderMissionId = element.id
-                    }
-                }
-            } else {
-                const createMissionFolder = drive.files.create({
-                    requestBody: {
-                        'name': req.body.idMission,
-                        'mimeType': 'application/vnd.google-apps.folder',
-                        'parents': [folderEvokeId]
-                    }
-                });
-                createMissionFolder.then(dataMissionFolder => {
-                    folderMissionId = dataMissionFolder.data.id;
-                    const driveResponse = drive.files.create({
-                        requestBody: {
-                            name: req.body.name,
-                            mimeType: req.body.mimetype,
-                            parents: [folderMissionId]
-                        },
-                        media: {
-                            mimeType: req.body.mimeType,
-                            body: fs.createReadStream(path.join(__dirname, `./${req.body.name}.jpg`))
-                        }
-                    });
-                    driveResponse.then(data => {
-                        if (data.status == 200) {
-                            res.status(200).send({ status: true, message: 'Image uploaded successfully' });
-                        } else {
-                            res.status(data.status).send({ status: false, message: 'Something failed' });
-                        }
-                        fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                            if (err) throw err;
-                        });
-                    }).catch(err => {
-                        res.status(err.code).send({ status: false, message: 'Fail to save the imagen', error: err.code });
-                    });
-                }).catch(errMissionFolder => {
-                    res.status(errMissionFolder.code).send({ status: false, message: 'Fail to create a mission folder in drive', error: errMissionFolder });
-                });
-            }
-            const driveResponse = drive.files.create({
-                requestBody: {
-                    name: req.body.name,
-                    mimeType: req.body.mimetype,
-                    parents: [folderMissionId]
-                },
-                media: {
-                    mimeType: req.body.mimeType,
-                    body: fs.createReadStream(path.join(__dirname, `./${req.body.name}.jpg`))
-                }
-            });
-            driveResponse.then(data => {
-                if (data.status == 200) {
-                    res.status(200).send({ status: true, message: 'Image uploaded successfully' });
-                } else {
-                    res.status(data.status).send({ status: false, message: 'Something failed' });
-                }
-                fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                    if (err) throw err;
-                });
-            }).catch(err => {
-                res.status(err.code).send({ status: false, message: 'Fail to save the image', error: err });
-            });
-        }).catch(errListFolderMission => {
-            res.status(errListFolderMission.code).send({ status: false, message: 'Fail to faind a mission folder in drive', error: errListFolderMission });
-        });
-        */
     }).catch(errFind => {
-        res.status(errFind.code).send({ status: false, message: 'Fail to faind a Evoke folder in drive', error: errFind });
+        res.status(errFind.code).send({ status: false, message: 'Fail to find a Evoke folder in drive', error: errFind });
     });
 });
 
