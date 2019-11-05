@@ -91,9 +91,26 @@ function createPermissions(drive, idImage) {
     });
 }
 
-function createEvidence(){
+function createEvidence(id_gg_drive, name, id_gg, id_mission, description) {
     return new Promise((resolve, reject) => {
-        
+        request.post({
+            headers: { 'content-type': 'application/json' },
+            url: 'http://evokecolombia.com/evidence/create',
+            json: {
+                'id_gg_drive': id_gg_drive,
+                'name': name,
+                'id_gg': id_gg,
+                'id_mission': id_mission,
+                'url': 'http://drive.google.com/uc?export=view&id=' + id_gg_drive,
+                'description': description
+            }
+        }, (error, response, body) => {
+            if (!error && response.statusCode == 200) {
+                resolve(body);
+            } else {
+                reject(body);
+            }
+        });
     })
 }
 
@@ -152,9 +169,16 @@ function saveImageAPI(req, res) {
                                 }
                                 // Crea los permisos de la imagen
                                 permission.call().then(dataPermission => {
-                                    res.status(200).send({ status: true, message: 'Image successfully created' });
-                                    fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                        if (err) throw err;
+                                    const evidence = async () => {
+                                        return await createEvidence(dataImage.data.id, req.body.name, req.body.id_gg, req.body.idMission, req.body.description);
+                                    }
+                                    evidence.call().then(data => {
+                                        res.status(200).send({ status: true, message: 'Image successfully created' });
+                                        fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                            if (err) throw err;
+                                        });
+                                    }).catch(err => {
+                                        res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
                                     });
                                 }).catch(err => {
                                     res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
@@ -177,9 +201,16 @@ function saveImageAPI(req, res) {
                             }
                             // Crea los permisos de la imagen
                             permission.call().then(dataPermission => {
-                                res.status(200).send({ status: true, message: 'Image successfully created' });
-                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                    if (err) throw err;
+                                const evidence = async () => {
+                                    return await createEvidence(dataImage.data.id, req.body.name, req.body.id_gg, req.body.idMission, req.body.description);
+                                }
+                                evidence.call().then(data => {
+                                    res.status(200).send({ status: true, message: 'Image successfully created' });
+                                    fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                        if (err) throw err;
+                                    });
+                                }).catch(err => {
+                                    res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
                                 });
                             }).catch(err => {
                                 res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
@@ -221,9 +252,16 @@ function saveImageAPI(req, res) {
                             }
                             // Crea los permisos de la imagen
                             permission.call().then(dataPermission => {
-                                res.status(200).send({ status: true, message: 'Image successfully created' });
-                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                    if (err) throw err;
+                                const evidence = async () => {
+                                    return await createEvidence(dataImage.data.id, req.body.name, req.body.id_gg, req.body.idMission, req.body.description);
+                                }
+                                evidence.call().then(data => {
+                                    res.status(200).send({ status: true, message: 'Image successfully created' });
+                                    fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                        if (err) throw err;
+                                    });
+                                }).catch(err => {
+                                    res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
                                 });
                             }).catch(err => {
                                 res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
@@ -246,9 +284,16 @@ function saveImageAPI(req, res) {
                         }
                         // Crea los permisos de la imagen
                         permission.call().then(dataPermission => {
-                            res.status(200).send({ status: true, message: 'Image successfully created' });
-                            fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                if (err) throw err;
+                            const evidence = async () => {
+                                return await createEvidence(dataImage.data.id, req.body.name, req.body.id_gg, req.body.idMission, req.body.description);
+                            }
+                            evidence.call().then(data => {
+                                res.status(200).send({ status: true, message: 'Image successfully created' });
+                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                    if (err) throw err;
+                                });
+                            }).catch(err => {
+                                res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
                             });
                         }).catch(err => {
                             res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
