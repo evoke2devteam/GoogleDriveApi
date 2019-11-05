@@ -2,6 +2,7 @@ const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
 const base64ToImage = require('base64-to-image');
+const request = require('request');
 
 function listFolders(drive) {
     return new Promise((resolve, reject) => {
@@ -68,6 +69,34 @@ function createImages(drive, name, idFolder, mimeType) {
     });
 }
 
+function createPermissions(drive, idImage) {
+    return new Promise((resolve, reject) => {
+        var permission = {
+            'type': 'anyone',
+            'role': 'reader',
+        };
+
+        drive.permissions.create({
+            resource: permission,
+            fileId: idImage,
+            fields: 'id',
+        }, function (err, res) {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(res)
+            }
+        });
+
+    });
+}
+
+function createEvidence(){
+    return new Promise((resolve, reject) => {
+        
+    })
+}
+
 function saveImageAPI(req, res) {
     let folderMissionId, folderEvokeId;
     const optionalObj = { 'fileName': req.body.name, 'type': 'jpg' };
@@ -118,9 +147,17 @@ function saveImageAPI(req, res) {
                             }
                             // Crea la imagen en google drive
                             createImage.call().then(dataImage => {
-                                res.status(200).send({ status: true, message: 'Image successfully created' });
-                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                    if (err) throw err;
+                                const permission = async () => {
+                                    return await createPermissions(drive, dataImage.data.id);
+                                }
+                                // Crea los permisos de la imagen
+                                permission.call().then(dataPermission => {
+                                    res.status(200).send({ status: true, message: 'Image successfully created' });
+                                    fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                        if (err) throw err;
+                                    });
+                                }).catch(err => {
+                                    res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
                                 });
                             }).catch(err => {
                                 res.status(err.code).send({ status: false, message: 'Fail to save image', error: err });
@@ -135,9 +172,17 @@ function saveImageAPI(req, res) {
                         }
                         // Crea la imagen en google drive
                         createImage.call().then(dataImage => {
-                            res.status(200).send({ status: true, message: 'Image successfully created' });
-                            fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                if (err) throw err;
+                            const permission = async () => {
+                                return await createPermissions(drive, dataImage.data.id);
+                            }
+                            // Crea los permisos de la imagen
+                            permission.call().then(dataPermission => {
+                                res.status(200).send({ status: true, message: 'Image successfully created' });
+                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                    if (err) throw err;
+                                });
+                            }).catch(err => {
+                                res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
                             });
                         }).catch(err => {
                             res.status(err.code).send({ status: false, message: 'Fail to save image', error: err });
@@ -170,9 +215,18 @@ function saveImageAPI(req, res) {
                         }
                         // Crea la imagen en google drive
                         createImage.call().then(dataImage => {
-                            res.status(200).send({ status: true, message: 'Image successfully created' });
-                            fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                if (err) throw err;
+                            //console.log('http://drive.google.com/uc?export=view&id=' + dataImage.data.id);
+                            const permission = async () => {
+                                return await createPermissions(drive, dataImage.data.id);
+                            }
+                            // Crea los permisos de la imagen
+                            permission.call().then(dataPermission => {
+                                res.status(200).send({ status: true, message: 'Image successfully created' });
+                                fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                    if (err) throw err;
+                                });
+                            }).catch(err => {
+                                res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
                             });
                         }).catch(err => {
                             res.status(err.code).send({ status: false, message: 'Fail to save image', error: err });
@@ -187,9 +241,17 @@ function saveImageAPI(req, res) {
                     }
                     // Crea la imagen en google drive
                     createImage.call().then(dataImage => {
-                        res.status(200).send({ status: true, message: 'Image successfully created' });
-                        fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                            if (err) throw err;
+                        const permission = async () => {
+                            return await createPermissions(drive, dataImage.data.id);
+                        }
+                        // Crea los permisos de la imagen
+                        permission.call().then(dataPermission => {
+                            res.status(200).send({ status: true, message: 'Image successfully created' });
+                            fs.unlink(`./${req.body.name}.jpg`, (err) => {
+                                if (err) throw err;
+                            });
+                        }).catch(err => {
+                            res.status(err.code).send({ status: false, message: 'Fail to create permissions', error: err });
                         });
                     }).catch(err => {
                         res.status(err.code).send({ status: false, message: 'Fail to save image', error: err });
