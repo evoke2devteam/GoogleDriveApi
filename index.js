@@ -2,11 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { google } = require('googleapis');
-const fs = require('fs');
-const path = require('path');
 const { celebrate, Joi } = require('celebrate');
-const base64ToImage = require('base64-to-image');
 const GDriveController =  require('./GDriveController');
 
 app.use(cors());

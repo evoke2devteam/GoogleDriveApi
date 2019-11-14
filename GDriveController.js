@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const base64ToImage = require('base64-to-image');
 const request = require('request');
+const process = require('process');
 
 function listFolders(drive) {
     return new Promise((resolve, reject) => {
@@ -322,7 +323,10 @@ function saveImageAPI(req, res) {
         }
     }).catch(err => {
         res.status(err.code).send({ status: false, message: 'Fail to find Evoke folder', error: err.errors[0].message });
-    })
+    });
+    process.on('uncaughtException', function (err) {
+        res.status(500).send({ status: false, message: 'Unexpected error', error: err }).end();
+    });
 }
 
 
