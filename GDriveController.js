@@ -175,7 +175,11 @@ function saveImageAPI(req, res) {
                                     evidence.call().then(data => {
                                         res.status(200).send({ status: true, message: 'Image successfully created' });
                                         fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                            if (err) throw err;
+                                            if (err) {
+                                                res.status(500).send({ status: false, message: 'Fail to delete Images in the server' });
+                                            } else {
+                                                res.status(200).send({ status: true, message: 'Image successfully created' });
+                                            }
                                         });
                                     }).catch(err => {
                                         res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
@@ -207,7 +211,11 @@ function saveImageAPI(req, res) {
                                 evidence.call().then(data => {
                                     res.status(200).send({ status: true, message: 'Image successfully created' });
                                     fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                        if (err) throw err;
+                                        if (err) {
+                                            res.status(500).send({ status: false, message: 'Fail to delete Images in the server' });
+                                        } else {
+                                            res.status(200).send({ status: true, message: 'Image successfully created' });
+                                        }
                                     });
                                 }).catch(err => {
                                     res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
@@ -256,9 +264,12 @@ function saveImageAPI(req, res) {
                                     return await createEvidence(dataImage.data.id, req.body.name, req.body.id_gg, req.body.idMission, req.body.description);
                                 }
                                 evidence.call().then(data => {
-                                    res.status(200).send({ status: true, message: 'Image successfully created' });
                                     fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                        if (err) throw err;
+                                        if (err) {
+                                            res.status(500).send({ status: false, message: 'Fail to delete Images in the server' });
+                                        } else {
+                                            res.status(200).send({ status: true, message: 'Image successfully created' });
+                                        }
                                     });
                                 }).catch(err => {
                                     res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
@@ -288,9 +299,12 @@ function saveImageAPI(req, res) {
                                 return await createEvidence(dataImage.data.id, req.body.name, req.body.id_gg, req.body.idMission, req.body.description);
                             }
                             evidence.call().then(data => {
-                                res.status(200).send({ status: true, message: 'Image successfully created' });
                                 fs.unlink(`./${req.body.name}.jpg`, (err) => {
-                                    if (err) throw err;
+                                    if (err) {
+                                        res.status(500).send({ status: false, message: 'Fail to delete Images in the server' });
+                                    } else {
+                                        res.status(200).send({ status: true, message: 'Image successfully created' });
+                                    }
                                 });
                             }).catch(err => {
                                 res.status(err.code).send({ status: false, message: 'Fail to create Evidence', error: err });
@@ -307,7 +321,7 @@ function saveImageAPI(req, res) {
             });
         }
     }).catch(err => {
-        res.status(err.code).send({ status: false, message: 'Fail to find Evoke folder', error: err });
+        res.status(err.code).send({ status: false, message: 'Fail to find Evoke folder', error: err.errors[0].message });
     })
 }
 
