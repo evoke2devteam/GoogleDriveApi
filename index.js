@@ -15,7 +15,8 @@ app.post('/save-image', celebrate({
         name: Joi.string().required(),
         image: Joi.string().required(),
         idMission: Joi.string().required(),
-        description: Joi.string().required()
+        description: Joi.string().required(),
+        id_gg: Joi.send().required()
     }).unknown()
 }), (err, req, res, next) => {
     res.status(400).send({ status: false, message: 'Missing data to send' });
